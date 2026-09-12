@@ -1,0 +1,52 @@
+name: Release Portable
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Release tag (example: v3.7-portable.1)"
+        required: true
+        default: "v3.7-portable.1"
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    name: Build and Release Portable x64
+    runs-on: windows-2025-vs2026
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Install Bun
+        uses: oven-sh/setup-bun@v2
+
+      - name: Build SumatraPDF
+        run: bun cmd/build.ts -rel
+
+      - name: Create portable ZIP
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path dist | Out-Null
+
+          Copy-Item `
+            out\rel64\SumatraPDF.exe `
+            dist\SumatraPDF.exe
+
+          Compress-Archive `
+            -Path dist\SumatraPDF.exe `
+            -DestinationPath SumatraPDF-Portable-x64.zip
+
+      - name: Create GitHub Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        shell: pwsh
+        run: |
+          gh release create "${{ inputs.tag }}" `
+            "SumatraPDF-Portable-x64.zip" `
+            --title "SumatraPDF Portable ${{ inputs.tag }}" `
+            --generate-notes
