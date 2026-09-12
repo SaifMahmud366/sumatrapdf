@@ -1,0 +1,39 @@
+name: Build Portable
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Build Portable x64
+    runs-on: windows-2025-vs2026
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Install Bun
+        uses: oven-sh/setup-bun@v2
+
+      - name: Build SumatraPDF
+        run: bun cmd/build.ts -rel
+
+      - name: Create portable ZIP
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path dist | Out-Null
+          Copy-Item out\rel64\SumatraPDF.exe dist\SumatraPDF.exe
+          Compress-Archive `
+            -Path dist\SumatraPDF.exe `
+            -DestinationPath SumatraPDF-Portable-x64.zip
+
+      - name: Upload portable ZIP
+        uses: actions/upload-artifact@v4
+        with:
+          name: SumatraPDF-Portable-x64
+          path: SumatraPDF-Portable-x64.zip
