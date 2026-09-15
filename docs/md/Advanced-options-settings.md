@@ -208,6 +208,10 @@ ShowDocumentFocusIndicator = false
 ; Ctrl+click to edit.") (introduced in version 3.7)
 ShowAnnotationNotification = true
 
+; if true, at the end of a document show a hint to open the next file in the
+; folder. Closing the hint sets it to false (introduced in version 3.7)
+ShowFileNavigateHint = true
+
 ; if true, show the author at the bottom of an annotation tooltip as "Author:
 ; <author>" (introduced in version 3.7)
 ShowAnnotationAuthorInTooltip = false
@@ -751,15 +755,15 @@ Annotations [
 
     ; color of newly created underline annotations. #aarrggbb sets default
     ; opacity the same way as HighlightColor
-    UnderlineColor = #00ff00
+    UnderlineColor = #8bf05d
 
     ; color of newly created squiggly underline annotations. #aarrggbb sets
     ; default opacity the same way as HighlightColor (introduced in version 3.5)
-    SquigglyColor = #ff00ff
+    SquigglyColor = #f199d2
 
     ; color of newly created strike out annotations. #aarrggbb sets default
     ; opacity the same way as HighlightColor (introduced in version 3.5)
-    StrikeOutColor = #ff0000
+    StrikeOutColor = #e24745
 
     ; text color of newly created free text annotations (introduced in version
     ; 3.5)
@@ -786,8 +790,60 @@ Annotations [
     ; (Arabic, Hebrew, Persian) want right (introduced in version 3.7)
     FreeTextAlignment = left
 
+    ; colors offered by the drop-down on the annotation toolbar's buttons,
+    ; separated by space. Picking one sets the color of new annotations of that
+    ; type. The color a button currently makes annotations in is added when it
+    ; is missing (introduced in version 3.7)
+    PresetColors = #ffff00 #8bf05d #99defa #f199d2 #e24745 #ff0000 #0000ff #000000
+
     ; color of newly created text (sticky note) annotations
     TextIconColor = 
+
+    ; color of newly created line annotations. If not set, the PDF engine's
+    ; default (red) is used (introduced in version 3.7)
+    LineColor = 
+
+    ; color of newly created polyline annotations. If not set, the PDF engine's
+    ; default (red) is used (introduced in version 3.7)
+    PolyLineColor = 
+
+    ; color of newly created square annotations. If not set, the PDF engine's
+    ; default (red) is used (introduced in version 3.7)
+    SquareColor = 
+
+    ; color of newly created circle annotations. If not set, the PDF engine's
+    ; default (red) is used (introduced in version 3.7)
+    CircleColor = 
+
+    ; color of newly created polygon annotations. If not set, the PDF engine's
+    ; default (red) is used (introduced in version 3.7)
+    PolygonColor = 
+
+    ; color of newly created ink annotations, as #aarrggbb: the alpha is how
+    ; translucent the stroke is (00 = transparent, FF = opaque), so the color is
+    ; exactly what ends up on the page (introduced in version 3.7)
+    InkColor = #66ffff00
+
+    ; colors offered by the ink button's drop-down, separated by space. Use
+    ; #aarrggbb values: the alpha is the stroke's opacity. The color ink
+    ; currently draws in is added when it is missing (introduced in version 3.7)
+    InkColors = #66ffff00 #668bf05d #6699defa #66f199d2 #66e24745
+
+    ; width of the stroke of new ink annotations, in points (introduced in
+    ; version 3.7)
+    InkBorderWidth = 16
+
+    ; color of newly created stamp annotations. If not set, the PDF engine's
+    ; default (red) is used (introduced in version 3.7)
+    StampColor = 
+
+    ; color of newly created caret annotations. If not set, the PDF engine's
+    ; default (red) is used (introduced in version 3.7)
+    CaretColor = 
+
+    ; color of newly created file attachment annotations. If not set, the PDF
+    ; engine's default (red) is used (introduced in version 3.7)
+    FileAttachmentColor = 
 
     ; icon shown for text (sticky note) annotations: comment, help, insert, key,
     ; new paragraph, note or paragraph. If not set, note is used

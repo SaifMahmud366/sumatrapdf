@@ -108,7 +108,7 @@ const commandsRaw = [
     "CmdZoomFitWidthAndContinuous", "Zoom: Fit Width And Continuous",
     "CmdZoomFitPageAndSinglePage", "Zoom: Fit Page and Single Page",
     "CmdContributeTranslation", "Contribute Translation",
-    "CmdOpenWithKnownExternalViewerFirst", "don't use",
+    "", "removed: CmdOpenWithKnownExternalViewerFirst",
     "CmdOpenWithExplorer", "Open Directory In Explorer",
     "CmdOpenWithDirectoryOpus", "Open Directory In Directory Opus",
     "CmdOpenWithTotalCommander", "Open Directory In Total Commander",
@@ -120,7 +120,7 @@ const commandsRaw = [
     "CmdOpenWithXpsViewer", "Open in Microsoft XPS Viewer",
     "CmdOpenWithHtmlHelp", "Open in Microsoft HTML Help",
     "CmdOpenWithPdfDjvuBookmarker", "Open With Pdf&Djvu Bookmarker",
-    "CmdOpenWithKnownExternalViewerLast", "don't use",
+    "", "removed: CmdOpenWithKnownExternalViewerLast",
     "CmdOpenSelectedDocument", "Open Selected Document",
     "CmdPinSelectedDocument", "Pin Selected Document",
     "CmdForgetSelectedDocument", "Remove Selected Document From History",
@@ -309,7 +309,7 @@ const commandsRaw = [
     "CmdSearchGoogleLens", "Search with Google Lens",
     "CmdNavigateThumbnail", "Navigate Thumbnails",
     "CmdShowAnnotationText", "Show Comment",
-    "CmdAnnotationHighlightBrush", "Highlight with Brush",
+    "CmdAnnotationHighlightBrush", "Highlighter",
     "CmdFindAnnotation", "Find Annotation",
     "CmdOpenFileNoHistory", "Open File Without History...",
     "CmdCopySelectionAsImage", "Copy Selection As Image",
@@ -324,6 +324,8 @@ const commandsRaw = [
     "CmdToggleReadingBar", "Reading Bar",
     "CmdToggleReadingBarInvert", "Reading Bar Invert",
     "CmdNone", "Do nothing",
+    "CmdFileHistory", "Open Recent File",
+    "CmdFavorite", "Go to Favorite",
 ];
 
 // removed slots are dropped: nothing outside the generators should see them
@@ -368,15 +370,7 @@ function generateEnum(): string {
   }
 
   lines.push("");
-  lines.push("    /* range for file history */");
-  lines.push("    CmdFileHistoryFirst,");
-  lines.push("    CmdFileHistoryLast = CmdFileHistoryFirst + 32,");
-  lines.push("");
-  lines.push("    /* range for favorites */");
-  lines.push("    CmdFavoriteFirst,");
-  lines.push("    CmdFavoriteLast = CmdFavoriteFirst + 256,");
-  lines.push("");
-  lines.push("    CmdLast = CmdFavoriteLast,");
+  lines.push(`    CmdLast = ${firstCmdId + names.length - 1},`);
   lines.push("    CmdFirstCustom = CmdLast + 100,");
   lines.push("");
   lines.push("    // aliases, at the end to not mess ordering");

@@ -817,20 +817,20 @@ const annotations: Field[] = [
   field(
     "UnderlineColor",
     Color,
-    rgb(0x00, 0xff, 0x0),
+    rgb(0x8b, 0xf0, 0x5d),
     "color of newly created underline annotations. #aarrggbb sets default opacity " + "the same way as HighlightColor",
   ),
   field(
     "SquigglyColor",
     Color,
-    rgb(0xff, 0x00, 0xff),
+    rgb(0xf1, 0x99, 0xd2),
     "color of newly created squiggly underline annotations. #aarrggbb sets default opacity " +
       "the same way as HighlightColor",
   ).ver("3.5"),
   field(
     "StrikeOutColor",
     Color,
-    rgb(0xff, 0x00, 0x00),
+    rgb(0xe2, 0x47, 0x45),
     "color of newly created strike out annotations. #aarrggbb sets default opacity " + "the same way as HighlightColor",
   ).ver("3.5"),
   field("FreeTextColor", Color, "", "text color of newly created free text annotations").ver("3.5"),
@@ -852,7 +852,78 @@ const annotations: Field[] = [
     "how text is aligned in newly created free text annotations (Text Alignment in the compact " +
       "property row): left, center or right. Right-to-left scripts (Arabic, Hebrew, Persian) want right",
   ).ver("3.7"),
+  field(
+    "PresetColors",
+    Str,
+    "#ffff00 #8bf05d #99defa #f199d2 #e24745 #ff0000 #0000ff #000000",
+    "colors offered by the drop-down on the annotation toolbar's buttons, separated by space. " +
+      "Picking one sets the color of new annotations of that type. The color a button currently makes " +
+      "annotations in is added when it is missing",
+  ).ver("3.7"),
   field("TextIconColor", Color, "", "color of newly created text (sticky note) annotations"),
+  field(
+    "LineColor",
+    Color,
+    "",
+    "color of newly created line annotations. If not set, the PDF engine's default (red) is used",
+  ).ver("3.7"),
+  field(
+    "PolyLineColor",
+    Color,
+    "",
+    "color of newly created polyline annotations. If not set, the PDF engine's default (red) is used",
+  ).ver("3.7"),
+  field(
+    "SquareColor",
+    Color,
+    "",
+    "color of newly created square annotations. If not set, the PDF engine's default (red) is used",
+  ).ver("3.7"),
+  field(
+    "CircleColor",
+    Color,
+    "",
+    "color of newly created circle annotations. If not set, the PDF engine's default (red) is used",
+  ).ver("3.7"),
+  field(
+    "PolygonColor",
+    Color,
+    "",
+    "color of newly created polygon annotations. If not set, the PDF engine's default (red) is used",
+  ).ver("3.7"),
+  field(
+    "InkColor",
+    Color,
+    rgba(0xff, 0xff, 0x0, 0x66),
+    "color of newly created ink annotations, as #aarrggbb: the alpha is how translucent the stroke is " +
+      "(00 = transparent, FF = opaque), so the color is exactly what ends up on the page",
+  ).ver("3.7"),
+  field(
+    "InkColors",
+    Str,
+    "#66ffff00 #668bf05d #6699defa #66f199d2 #66e24745",
+    "colors offered by the ink button's drop-down, separated by space. Use #aarrggbb values: " +
+      "the alpha is the stroke's opacity. The color ink currently draws in is added when it is missing",
+  ).ver("3.7"),
+  field("InkBorderWidth", Int, 16, "width of the stroke of new ink annotations, in points").ver("3.7"),
+  field(
+    "StampColor",
+    Color,
+    "",
+    "color of newly created stamp annotations. If not set, the PDF engine's default (red) is used",
+  ).ver("3.7"),
+  field(
+    "CaretColor",
+    Color,
+    "",
+    "color of newly created caret annotations. If not set, the PDF engine's default (red) is used",
+  ).ver("3.7"),
+  field(
+    "FileAttachmentColor",
+    Color,
+    "",
+    "color of newly created file attachment annotations. If not set, the PDF engine's default (red) is used",
+  ).ver("3.7"),
   field(
     "TextIconType",
     Str,
@@ -890,7 +961,6 @@ const favorite: Field[] = [
   )
     .structName("PointF")
     .ver("3.7"),
-  field("MenuId", Int, 0, "id of this favorite in the menu (assigned by AppendFavMenuItems)").notSaved(),
   // search-start mark ("/") from Find; session-only. Field is in metadata so
   // SerializeStruct can skip array elements with IsTemporary=true; the field
   // itself is never written (SettingsUtil) (issue #5862)
@@ -1349,6 +1419,12 @@ const globalPrefs: Field[] = [
     Bool,
     true,
     'if true, show a tip when hovering an annotation (e.g. "Highlight annotation. Ctrl+click to edit.")',
+  ).ver("3.7"),
+  field(
+    "ShowFileNavigateHint",
+    Bool,
+    true,
+    "if true, at the end of a document show a hint to open the next file in the folder. Closing the hint sets it to false",
   ).ver("3.7"),
   field(
     "ShowAnnotationAuthorInTooltip",
@@ -1902,6 +1978,7 @@ const globalPrefsLayout = [
   "MouseWheelTurnsPage",
   "ShowDocumentFocusIndicator",
   "ShowAnnotationNotification",
+  "ShowFileNavigateHint",
   "ShowAnnotationAuthorInTooltip",
   "ShowTocPageNumbers",
   "ShowStartPage",

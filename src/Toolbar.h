@@ -70,6 +70,8 @@ struct ToolbarHoverMenuItem {
 // Built every time the drop-down opens, so it shows the current state.
 struct ToolbarHoverBuildEvent {
     MainWindow* win = nullptr;
+    // the button the drop-down is being built for
+    int cmdId = 0;
     // out: the drop-down's content; the drop-down takes ownership
     ILayout* layout = nullptr;
     // out: optional. Hang the drop-down off the middle of the button, instead
@@ -88,6 +90,20 @@ ILayout* NewToolbarHoverMenu(MainWindow*, const Vec<ToolbarHoverMenuItem>&);
 ILayout* NewToolbarHoverStrip(MainWindow*, const Vec<ToolbarHoverMenuItem>&);
 void HideToolbarHoverDropdown(MainWindow*);
 bool ToolbarHoverDropdownContainsScreenPoint(MainWindow*, Point);
+
+// the markup buttons' color drop-down, under a rect that is not a toolbar
+// button (the annotation edit toolbar's color chips). withNone adds a swatch
+// for no color at all, which picks kColorUnset. label heads the swatches
+// thickness >= 0 adds the Thickness slider the ink button's drop-down has,
+// starting there; onThickness gets the width when the slider is let go.
+// thicknessLabel names the slider (Thickness when empty), minThickness is its lowest width
+void ShowAnnotColorPopup(MainWindow*, Rect anchor, Color current, bool withNone, Str label, const Func1<Color>& onPick,
+                         int thickness = -1, const Func1<int>& onThickness = {}, Str thicknessLabel = {},
+                         int minThickness = 1);
+void ShowAnnotSliderPopup(MainWindow*, Rect anchor, Str label, int value, int minVal, int maxVal,
+                          const Func1<int>& onValue);
+// for tests: the swatches of the drop-down that is up, if any
+TempStr AnnotColorPopupStateTemp();
 
 //--- internal to Toolbar.cpp, not meant for anyone else
 

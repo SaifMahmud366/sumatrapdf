@@ -107,7 +107,6 @@ enum {
     CmdZoomFitWidthAndContinuous = 296,
     CmdZoomFitPageAndSinglePage = 297,
     CmdContributeTranslation = 298,
-    CmdOpenWithKnownExternalViewerFirst = 299,
     CmdOpenWithExplorer = 300,
     CmdOpenWithDirectoryOpus = 301,
     CmdOpenWithTotalCommander = 302,
@@ -119,7 +118,6 @@ enum {
     CmdOpenWithXpsViewer = 308,
     CmdOpenWithHtmlHelp = 309,
     CmdOpenWithPdfDjvuBookmarker = 310,
-    CmdOpenWithKnownExternalViewerLast = 311,
     CmdOpenSelectedDocument = 312,
     CmdPinSelectedDocument = 313,
     CmdForgetSelectedDocument = 314,
@@ -320,16 +318,10 @@ enum {
     CmdToggleReadingBar = 511,
     CmdToggleReadingBarInvert = 512,
     CmdNone = 513,
+    CmdFileHistory = 514,
+    CmdFavorite = 515,
 
-    /* range for file history */
-    CmdFileHistoryFirst,
-    CmdFileHistoryLast = CmdFileHistoryFirst + 32,
-
-    /* range for favorites */
-    CmdFavoriteFirst,
-    CmdFavoriteLast = CmdFavoriteFirst + 256,
-
-    CmdLast = CmdFavoriteLast,
+    CmdLast = 515,
     CmdFirstCustom = CmdLast + 100,
 
     // aliases, at the end to not mess ordering
@@ -475,3 +467,8 @@ void GetCommandsWithOrigId(Vec<CustomCommand*>& commands, int origId);
 #define kCmdArgState StrL("state")
 #define kCmdArgName StrL("name")
 #define kCmdArgExt StrL("ext")
+// path of the file to open, e.g. [CmdFileHistory C:\dir\file.pdf]
+#define kCmdArgFilePath StrL("filepath")
+
+// page of the favorite to go to, as stored in settings (a page number or `bm:<bookmark>`)
+#define kCmdArgPage StrL("page")

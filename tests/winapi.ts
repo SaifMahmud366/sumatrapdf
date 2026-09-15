@@ -75,6 +75,7 @@ const user32 = dlopen("user32.dll", {
     returns: FFIType.bool,
   },
   FillRect: { args: [FFIType.u64, FFIType.ptr, FFIType.u64], returns: FFIType.i32 },
+  GetMenuItemID: { args: [FFIType.u64, FFIType.i32], returns: FFIType.u32 },
   GetMenuItemCount: { args: [FFIType.u64], returns: FFIType.i32 },
   GetSubMenu: { args: [FFIType.u64, FFIType.i32], returns: FFIType.u64 },
   GetMenuStringW: { args: [FFIType.u64, FFIType.u32, FFIType.ptr, FFIType.i32, FFIType.u32], returns: FFIType.i32 },
@@ -290,6 +291,7 @@ export const VK_UP = 0x26;
 export const VK_RIGHT = 0x27;
 export const VK_DOWN = 0x28;
 export const VK_DELETE = 0x2e;
+export const VK_F4 = 0x73;
 // PrintWindow flags
 export const PW_CLIENTONLY = 0x00000001;
 export const PW_RENDERFULLCONTENT = 0x00000002;
@@ -1676,6 +1678,11 @@ export function getPopupMenuHandle(hwndPopup: number): bigint {
 
 export function getMenuItemCount(hmenu: bigint): number {
   return user32.symbols.GetMenuItemCount(hmenu);
+}
+
+// command id of the item at `pos`, 0 if it's a separator or a submenu
+export function getMenuItemId(hmenu: bigint, pos: number): number {
+  return user32.symbols.GetMenuItemID(hmenu, pos);
 }
 
 export function getSubMenu(hmenu: bigint, pos: number): bigint {

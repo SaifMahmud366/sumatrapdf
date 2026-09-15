@@ -29,6 +29,8 @@ CmdOpenFileWithOSFilePicker,,Open File With Windows File Picker...,"always the s
 CmdToggleFilePicker,,SumatraPDF File Picker,"checkbox under File and Settings; toggles `FilePicker` empty/os ↔ sumatrapdf, ver 3.7+"
 CmdToggleBoolSetting,,Toggle Boolean Setting,"in the Command Palette, lists boolean advanced settings; Enter or a click toggles one and closes. Custom shortcuts: `CmdToggleBoolSetting <SettingName>` (case-insensitive leaf or dotted path), e.g. `Fullscreen.ShowMenubar` (fixes #5912), ver 3.7+"
 CmdFixDefaultApp,,Fix Default App For Extension,"`CmdFixDefaultApp .pdf` opens the OS dialog to set the default app for that extension; used by the home-page bottom bar when Sumatra is no longer the default, ver 3.7+"
+CmdFileHistory,,Open Recent File,"`CmdFileHistory <path>` opens that file; used for the recent files listed in the File menu, each of which carries its own path, ver 3.7+"
+CmdFavorite,,Go to Favorite,"`CmdFavorite <path> page=<page>` goes to that favorite; used for the favorites listed in the Favorites menu, each of which carries its own file path and page, ver 3.7+"
 CmdOpenNextFileInFolder,Shift + Ctrl + Right,Open Next File In Folder,
 CmdNavigateFilesInFolder,Shift + Ctrl + Up,Navigate Files in Folder,"directory browser for openable files in the current file's folder (stays open; Enter/double-click replaces the current tab, Ctrl+Enter/Ctrl+double-click switches to the tab already showing the file or opens a new tab, Alt+Up goes to the parent directory, Del moves the selected file to the recycle bin, F5 re-reads the directory); also used when `FilePicker = sumatrapdf`, ver 3.7+"
 CmdOpenPrevFileInFolder,Shift + Ctrl + Left,Open Previous File In Folder,
@@ -214,7 +216,7 @@ CmdFindAnnotation,,Find Annotation,"opens the floating annotation list, where yo
 CmdCreateAnnotFileAttachment,,Create File Attachment Annotation,"click to place, like Stamp/Caret; Esc cancels, ver 3.7+"
 CmdCreateAnnotFreeText,,Create Free Text Annotation,
 CmdCreateAnnotHighlight,"a, A",Create Highlight Annotation,"`A` (`Shift + A`) is `CmdCreateAnnotHighlight openedit`: also turns on Edit PDF mode"
-CmdAnnotationHighlightBrush,,Highlight with Brush,"a freehand highlighter: drag to paint a marker stroke anywhere on the page, no text selection needed. Release finishes, Esc cancels. Saved as an ink annotation in HighlightColor, ver 3.7+"
+CmdAnnotationHighlightBrush,,Highlighter,"a mode: every text selection is highlighted, until Esc or Enter. Text already selected is highlighted right away, ver 3.7+"
 CmdCreateAnnotInk,,Create Ink Annotation,"drag to paint; release commits the stroke and leaves the tool on. Esc or closing the hint leaves the tool, ver 3.7+"
 CmdCreateAnnotLine,,Create Line Annotation,
 CmdCreateAnnotLink,,Create Link Annotation,
@@ -406,8 +408,6 @@ Command IDs,Keyboard shortcuts,Command Palette,Notes
 CmdInstallPrereleaseUpdate,,internal,"used by the pre-release update notification link (Update); not for user shortcuts or DDE"
 CmdTogglePdfPreviewLogging,,internal,"toggles PDF shell-preview logging for debugging the Windows preview handler; not for normal use"
 CmdDebugCorruptMemory,,don't use,
-CmdOpenWithKnownExternalViewerFirst,,don't use,
-CmdOpenWithKnownExternalViewerLast,,don't use,
 CmdSelectionHandler,,use SelectionHandlers advanced setting instead,
 CmdSetTheme,,don't use,
 CmdViewWithExternalViewer,,don't use,

@@ -1742,6 +1742,21 @@ static bool OnTouchLongPress(MainWindow* win, int x, int y) {
     return true;
 }
 
+// Edit PDF with an annotation selected (its toolbar is up): the mouse works only
+// on that annotation, and a click anywhere else just deselects it
+static Annotation* AnnotationLockingMouse(MainWindow* win) {
+    WindowTab* tab = win ? win->CurrentTab() : nullptr;
+    Annotation* annot = tab ? tab->selectedAnnotation : nullptr;
+    if (!win || !win->pdfAnnotationsToolbarEnabled || !AnnotationIsLive(annot)) {
+        return nullptr;
+    }
+    return annot;
+}
+
+// the last left press only deselected an annotation, so a double-click it
+// started must not act on the page
+static bool gPressOnlyDeselected = false;
+
 static void OnMouseMove(MainWindow* win, int x, int y, WPARAM key) {
     if (ReadingBarOnMouseMove(win, x, y)) {
         return;
@@ -1863,9 +1878,23 @@ static void OnMouseMove(MainWindow* win, int x, int y, WPARAM key) {
     Point prevPos = win->dragPrevPos;
     switch (win->mouseAction) {
         case MouseAction::None: {
-            Annotation* annot = dm->GetAnnotationAtPos(pos, nullptr);
             Annotation* prev = win->annotationUnderCursor;
-            bool editPdf = win->pdfAnnotationsToolbarEnabled;
+            // no hover effects for anything but the annotation being edited
+            Annotation* locked = AnnotationLockingMouse(win);
+            if (locked) {
+                bool onLocked = dm->GetAnnotationAtPos(pos, locked) == locked;
+                win->annotationUnderCursor = onLocked ? locked : nullptr;
+                if (win->annotationUnderCursor != prev) {
+                    ScheduleRepaint(win, 0);
+                }
+                RemoveNotificationsForGroup(win->hwndCanvas, kNotifAnnotation);
+                HideAnnotationHoverOverlay(win);
+                break;
+            }
+            // the highlighter only selects text: annotations get no hover
+            bool highlighter = IsPlacingHighlighterAnnotation(win);
+            Annotation* annot = highlighter ? nullptr : dm->GetAnnotationAtPos(pos, nullptr);
+            bool editPdf = win->pdfAnnotationsToolbarEnabled && !highlighter;
             int srcPageNo = -1;
             IPageElement* el = dm->GetElementAtPos(pos, &srcPageNo);
             if (el && el->Is(kindPageElementDest) && gSettings->disableLinks) {
@@ -2225,9 +2254,14 @@ static bool MouseHasCtrl(WPARAM key) {
     return IsCtrlPressed() || bit::IsMaskSet(key, (WPARAM)MK_CONTROL);
 }
 
-static void OpenOrSelectEditAnnotation(WindowTab* tab, Annotation* annot) {
+static void OpenOrSelectEditAnnotation(WindowTab* tab, Annotation* annot, Point clickPt) {
     if (!tab || !annot) {
         return;
+    }
+    DisplayModel* dm = tab->win ? tab->win->AsFixed() : nullptr;
+    if (dm && AnnotationIsTextMarkup(annot->type)) {
+        // the toolbar starts at the click, not at the (maybe multi-line) bounds
+        SetAnnotEditToolbarClickPos(annot, dm->CvtFromScreen(clickPt, PageNo(annot)));
     }
     SetSelectedAnnotation(tab, annot);
     HideAnnotationHoverOverlay(tab->win);
@@ -2235,6 +2269,7 @@ static void OpenOrSelectEditAnnotation(WindowTab* tab, Annotation* annot) {
 
 static void OnMouseLeftButtonDown(MainWindow* win, int x, int y, WPARAM key) {
     // lf("Left button clicked on %d %d", x, y);
+    gPressOnlyDeselected = false;
     if (IsRightDragging(win)) {
         return;
     }
@@ -2278,6 +2313,27 @@ static void OnMouseLeftButtonDown(MainWindow* win, int x, int y, WPARAM key) {
         return;
     }
 
+    // Edit PDF with an annotation selected: a press anywhere but on that
+    // annotation or its resize handles only deselects it
+    Annotation* locked = AnnotationLockingMouse(win);
+    if (locked) {
+        bool onHandle =
+            AnnotationCanBeResized(locked->type) && GetResizeHandleAt(win, pt, locked) != ResizeHandle::None;
+        bool onLocked = dm->GetAnnotationAtPos(pt, locked) == locked;
+        if (!onHandle && !onLocked) {
+            if (!AnnotContentsEditJustEnded()) {
+                SetSelectedAnnotation(win->CurrentTab(), nullptr);
+            }
+            gPressOnlyDeselected = true;
+            return;
+        }
+        // one that can't be moved has nothing to drag. Text markup is the
+        // exception: a press on it still selects the text under it (#6166)
+        if (!onHandle && !AnnotationCanBeMoved(locked->type) && !AnnotationIsTextMarkup(locked->type)) {
+            return;
+        }
+    }
+
     // remember how this sequence started: WM_CONTEXTMENU, which a long press
     // turns into, doesn't say whether a finger or a mouse produced it
     win->lastInputWasTouch = IsMouseMessageFromTouch();
@@ -2298,7 +2354,7 @@ static void OnMouseLeftButtonDown(MainWindow* win, int x, int y, WPARAM key) {
 
     // grabbing a touch selection handle drags that end of the selection rather
     // than starting a new one (issue #538)
-    TouchSelHandle handle = HitTestTouchSelHandle(win, x, y);
+    TouchSelHandle handle = locked ? TouchSelHandle::None : HitTestTouchSelHandle(win, x, y);
     if (handle != TouchSelHandle::None) {
         logf("touch: grabbed %s handle at %d,%d\n", TouchSelHandleName(handle), x, y);
         win->touchSelDragging = handle;
@@ -2312,7 +2368,7 @@ static void OnMouseLeftButtonDown(MainWindow* win, int x, int y, WPARAM key) {
     // text or choice field starts in-place editing. Widgets are hit-tested on
     // their own list (GetWidgetAtPos), separate from markup annotations. Consume
     // the click in either case so it doesn't start a drag/selection.
-    Annotation* widget = dm->GetWidgetAtPos(pt);
+    Annotation* widget = locked ? nullptr : dm->GetWidgetAtPos(pt);
     if (ToggleFormButton(widget)) {
         MainWindowRerender(win);
         win->mouseAction = MouseAction::None;
@@ -2344,7 +2400,9 @@ static void OnMouseLeftButtonDown(MainWindow* win, int x, int y, WPARAM key) {
         return;
     }
 
-    Annotation* annot = dm->GetAnnotationAtPos(pt, tab->selectedAnnotation);
+    // the highlighter only selects text: a click never picks an annotation
+    Annotation* annot =
+        IsPlacingHighlighterAnnotation(win) ? nullptr : dm->GetAnnotationAtPos(pt, tab->selectedAnnotation);
     if (MouseHasCtrl(key) && annot && tab) {
         EnablePdfAnnotationsToolbar(win);
     }
@@ -2354,7 +2412,7 @@ static void OnMouseLeftButtonDown(MainWindow* win, int x, int y, WPARAM key) {
         // click starts a selection (issue #6166); Ctrl+click still selects.
         bool clickThrough = AnnotationIsTextMarkup(annot->type) && !MouseHasCtrl(key);
         if (!clickThrough) {
-            OpenOrSelectEditAnnotation(tab, annot);
+            OpenOrSelectEditAnnotation(tab, annot, pt);
             win->textDragPending = false;
             return;
         }
@@ -2572,6 +2630,7 @@ static void OnMouseLeftButtonUp(MainWindow* win, int x, int y, WPARAM key) {
         if (MouseAction::Selecting == ma && win->showSelection) {
             win->selectionMeasure = dm->CvtFromScreen(win->selectionRect).Size();
         }
+        AnnotationPlacementOnSelectionStop(win);
         if (FinishSignaturePlacement(win, x, y, !didDragMouse)) {
             win->mouseAction = MouseAction::None;
             return;
@@ -2603,18 +2662,21 @@ static void OnMouseLeftButtonUp(MainWindow* win, int x, int y, WPARAM key) {
     // and is stale when WM_MOUSEMOVE did not run (or returned early because
     // dragStartPending was still set from the create gesture). Using it
     // re-selected the new stamp when clicking empty page (issue #5933).
-    Annotation* clickedAnnot = dm->GetAnnotationAtPos(pt, tab ? tab->selectedAnnotation : nullptr);
+    // the highlighter only selects text: a click never picks an annotation
+    Annotation* clickedAnnot = IsPlacingHighlighterAnnotation(win)
+                                   ? nullptr
+                                   : dm->GetAnnotationAtPos(pt, tab ? tab->selectedAnnotation : nullptr);
     if (MouseHasCtrl(key) && clickedAnnot && tab) {
         EnablePdfAnnotationsToolbar(win);
     }
     bool editPdf = win->pdfAnnotationsToolbarEnabled;
 
+    // In Edit PDF mode a click selects the annotation and shows its toolbar.
+    // Text markup clicks through on button-down so that a drag still selects
+    // the glyphs underneath (issue #6166), but a plain click ends up here.
     if (clickedAnnot && tab && editPdf) {
-        bool clickThrough = AnnotationIsTextMarkup(clickedAnnot->type) && !MouseHasCtrl(key);
-        if (!clickThrough) {
-            OpenOrSelectEditAnnotation(tab, clickedAnnot);
-            return;
-        }
+        OpenOrSelectEditAnnotation(tab, clickedAnnot, pt);
+        return;
     }
 
     IPageDestination* dest = link ? link->AsLink() : nullptr;
@@ -2737,8 +2799,23 @@ static void OnMouseLeftButtonDblClk(MainWindow* win, int x, int y, WPARAM key) {
     if (AnnotationPlacementOnLeftDblClk(win, Point{x, y})) {
         return;
     }
+    if (gPressOnlyDeselected) {
+        gPressOnlyDeselected = false;
+        return;
+    }
+    // while an annotation is selected, double-clicking it (to edit free text in
+    // place) is the only double-click there is
+    Annotation* locked = AnnotationLockingMouse(win);
+    if (locked) {
+        DisplayModel* dmLocked = win->AsFixed();
+        bool onLocked = dmLocked && dmLocked->GetAnnotationAtPos(Point{x, y}, locked) == locked;
+        if (onLocked && Type(locked) == AnnotationType::FreeText) {
+            StartFreeTextInPlaceEdit(win, locked);
+        }
+        return;
+    }
     // a double-click on free text edits its text where it sits on the page
-    if (StartFreeTextInPlaceEditAt(win, Point{x, y})) {
+    if (!IsPlacingHighlighterAnnotation(win) && StartFreeTextInPlaceEditAt(win, Point{x, y})) {
         return;
     }
     auto isLeft = bit::IsMaskSet(key, (WPARAM)MK_LBUTTON);
@@ -2863,6 +2940,11 @@ static void OnMouseMiddleButtonUp(MainWindow* win, WPARAM /*key*/) {
 static void OnMouseRightButtonDown(MainWindow* win, int x, int y) {
     // lf("Right button clicked on %d %d", x, y);
     if (AnnotationPlacementOnRightDown(win)) {
+        return;
+    }
+    // while an annotation is selected, only it has a context menu
+    Annotation* locked = AnnotationLockingMouse(win);
+    if (locked && win->AsFixed() && win->AsFixed()->GetAnnotationAtPos(Point{x, y}, locked) != locked) {
         return;
     }
     if (MouseAction::Scrolling == win->mouseAction) {
@@ -4049,6 +4131,14 @@ static LRESULT OnSetCursorMouseNone(MainWindow* win, HWND hwnd) {
         }
     }
 
+    // an annotation being edited: no hover cursors or tooltips for anything else
+    if (AnnotationLockingMouse(win)) {
+        win->DeleteToolTip();
+        bool onSelected = dm->GetAnnotationAtPos(pt, selected) == selected;
+        SetCursorCached(onSelected ? IDC_HAND : IDC_ARROW);
+        return TRUE;
+    }
+
     // PDF form fields: I-beam over text/choice, hand over checkbox/radio
     {
         WidgetCursorKind kind = GetWidgetCursorKind(dm->GetWidgetAtPos(pt));
@@ -4062,7 +4152,7 @@ static LRESULT OnSetCursorMouseNone(MainWindow* win, HWND hwnd) {
         }
     }
 
-    Annotation* annot = dm->GetAnnotationAtPos(pt, selected);
+    Annotation* annot = IsPlacingHighlighterAnnotation(win) ? nullptr : dm->GetAnnotationAtPos(pt, selected);
     bool annotEditHover = annot && (win->pdfAnnotationsToolbarEnabled || selected);
 
     int pageNo = 0;
@@ -4079,9 +4169,10 @@ static LRESULT OnSetCursorMouseNone(MainWindow* win, HWND hwnd) {
         win->DeleteToolTip();
         return TRUE;
     }
-    // The Edit PDF hover card has the annotation's contents and metadata.
-    // Do not put the old one-line comment tooltip on top of it.
-    if (win->pdfAnnotationsToolbarEnabled && annot && pageEl->Is(kindPageElementComment)) {
+    // The Edit PDF hover card and the text popup have the annotation's contents.
+    // Do not put the old one-line comment tooltip on top of them.
+    bool annotCardShown = win->pdfAnnotationsToolbarEnabled || IsAnnotationTextPopupShownFor(win, annot);
+    if (annotCardShown && annot && pageEl->Is(kindPageElementComment)) {
         win->DeleteToolTip();
         SetCursorCached(IDC_HAND);
         return TRUE;
@@ -5141,6 +5232,10 @@ static LRESULT WndProcCanvasFixedPageUI(MainWindow* win, HWND hwnd, UINT msg, WP
             // drive auto-scroll from a high-frequency timer (with fractional-pixel
             // accumulation in the handler) so it's smooth, not choppy (issue #2693)
             // TODO: Create window that shows location of initial click for reference
+            // no auto-scroll while an annotation is selected; a running one can still be stopped
+            if (AnnotationLockingMouse(win) && win->mouseAction != MouseAction::Scrolling) {
+                return 0;
+            }
             ReadingAutoScrollStop(win);
             ToggleAutoScroll(win, x, y);
             return 0;
@@ -6073,6 +6168,13 @@ LRESULT CALLBACK WndProcCanvas(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp) {
             }
             // let DefWindowProc calculate NC size without scroll styles
             return DefWindowProc(hwnd, msg, wp, lp);
+        }
+    }
+
+    if (msg == WM_CTLCOLOREDIT) {
+        HBRUSH br = FreeTextInPlaceEditCtlColor((HWND)lp, (HDC)wp);
+        if (br) {
+            return (LRESULT)br;
         }
     }
 

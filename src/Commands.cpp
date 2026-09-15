@@ -112,7 +112,6 @@ static SeqStrings gCommandNames =
     "CmdZoomFitWidthAndContinuous\0"
     "CmdZoomFitPageAndSinglePage\0"
     "CmdContributeTranslation\0"
-    "CmdOpenWithKnownExternalViewerFirst\0"
     "CmdOpenWithExplorer\0"
     "CmdOpenWithDirectoryOpus\0"
     "CmdOpenWithTotalCommander\0"
@@ -124,7 +123,6 @@ static SeqStrings gCommandNames =
     "CmdOpenWithXpsViewer\0"
     "CmdOpenWithHtmlHelp\0"
     "CmdOpenWithPdfDjvuBookmarker\0"
-    "CmdOpenWithKnownExternalViewerLast\0"
     "CmdOpenSelectedDocument\0"
     "CmdPinSelectedDocument\0"
     "CmdForgetSelectedDocument\0"
@@ -325,6 +323,8 @@ static SeqStrings gCommandNames =
     "CmdToggleReadingBar\0"
     "CmdToggleReadingBarInvert\0"
     "CmdNone\0"
+    "CmdFileHistory\0"
+    "CmdFavorite\0"
     "\0";
 
 static i32 gCommandIds[] = {
@@ -426,7 +426,6 @@ static i32 gCommandIds[] = {
     CmdZoomFitWidthAndContinuous,
     CmdZoomFitPageAndSinglePage,
     CmdContributeTranslation,
-    CmdOpenWithKnownExternalViewerFirst,
     CmdOpenWithExplorer,
     CmdOpenWithDirectoryOpus,
     CmdOpenWithTotalCommander,
@@ -438,7 +437,6 @@ static i32 gCommandIds[] = {
     CmdOpenWithXpsViewer,
     CmdOpenWithHtmlHelp,
     CmdOpenWithPdfDjvuBookmarker,
-    CmdOpenWithKnownExternalViewerLast,
     CmdOpenSelectedDocument,
     CmdPinSelectedDocument,
     CmdForgetSelectedDocument,
@@ -639,6 +637,8 @@ static i32 gCommandIds[] = {
     CmdToggleReadingBar,
     CmdToggleReadingBarInvert,
     CmdNone,
+    CmdFileHistory,
+    CmdFavorite,
 };
 
 SeqStrings gCommandDescriptions =
@@ -740,7 +740,6 @@ SeqStrings gCommandDescriptions =
     "Zoom: Fit Width And Continuous\0"
     "Zoom: Fit Page and Single Page\0"
     "Contribute Translation\0"
-    "don't use\0"
     "Open Directory In Explorer\0"
     "Open Directory In Directory Opus\0"
     "Open Directory In Total Commander\0"
@@ -752,7 +751,6 @@ SeqStrings gCommandDescriptions =
     "Open in Microsoft XPS Viewer\0"
     "Open in Microsoft HTML Help\0"
     "Open With Pdf&Djvu Bookmarker\0"
-    "don't use\0"
     "Open Selected Document\0"
     "Pin Selected Document\0"
     "Remove Selected Document From History\0"
@@ -938,7 +936,7 @@ SeqStrings gCommandDescriptions =
     "Search with Google Lens\0"
     "Navigate Thumbnails\0"
     "Show Comment\0"
-    "Highlight with Brush\0"
+    "Highlighter\0"
     "Find Annotation\0"
     "Open File Without History...\0"
     "Copy Selection As Image\0"
@@ -953,6 +951,8 @@ SeqStrings gCommandDescriptions =
     "Reading Bar\0"
     "Reading Bar Invert\0"
     "Do nothing\0"
+    "Open Recent File\0"
+    "Go to Favorite\0"
     "\0";
 // clang-format on
 // @gen-end cmd-c
@@ -1017,6 +1017,13 @@ static const ArgSpec argSpecs[] = {
 
     // extension including leading dot, e.g. [CmdFixDefaultApp .pdf]
     {CmdFixDefaultApp, kCmdArgExt, CommandArg::Type::String}, // default
+
+    // a recent file in the File menu, e.g. [CmdFileHistory C:\dir\file.pdf]
+    {CmdFileHistory, kCmdArgFilePath, CommandArg::Type::String}, // default
+
+    // a favorite in the Favorites menu, e.g. [CmdFavorite C:\dir\file.pdf page=3]
+    {CmdFavorite, kCmdArgFilePath, CommandArg::Type::String}, // default
+    {CmdFavorite, kCmdArgPage, CommandArg::Type::String},
 
     {CmdNone, StrL(""), CommandArg::Type::None}, // sentinel
 };

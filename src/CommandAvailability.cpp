@@ -281,8 +281,6 @@ static UINT_PTR removeIfChm[] = {
 
 static i32 gBlacklistCommandsFromPalette[] = {
     CmdNone,
-    CmdOpenWithKnownExternalViewerFirst,
-    CmdOpenWithKnownExternalViewerLast,
     CmdCommandPalette,
     CmdCommandPaletteTOC,
     CmdCommandPaletteFavorites,
@@ -308,6 +306,8 @@ static i32 gBlacklistCommandsFromPalette[] = {
     CmdOpenAttachment,
     CmdCreateShortcutToFile,
     CmdSetDocumentColorsFollowTheme,
+    CmdFileHistory,
+    CmdFavorite,
     0,
 };
 
@@ -432,6 +432,7 @@ AppCommandCtx NewAppCommandCtx(MainWindow* win, Point cursorPos) {
         ctx.supportsAnnots = EngineSupportsAnnotations(engine);
         ctx.hasUnsavedAnnotations = EngineHasUnsavedAnnotations(engine);
         ctx.hasRedactMarks = EngineHasRedactMarks(engine);
+        ctx.hasUserRedactMarks = EngineHasUserRedactMarks(engine);
         ctx.canUndo = EngineMupdfCanUndo(engine);
         ctx.canRedo = EngineMupdfCanRedo(engine);
         int pageNoUnderCursor = dm->GetPageNoByPoint(cursorPos);
@@ -605,19 +606,23 @@ CommandVisibility GetCommandVisibility(int cmdId, const AppCommandCtx& ctx, Comm
         return CommandVisibility::Hide;
     }
 
-    if (ctx.tab) {
-        int idFirst = CmdOpenWithKnownExternalViewerFirst + 1;
-        int idLast = CmdOpenWithKnownExternalViewerLast;
-        if (cmdId >= idFirst && cmdId <= idLast) {
-            bool canView = CanViewWithKnownExternalViewer(ctx.tab, cmdId);
-            return canView ? CommandVisibility::Show : CommandVisibility::Hide;
-        }
+    // a Shortcuts / toolbar entry is a clone with its own id, so it's the
+    // command it stands for that decides
+    int knownEVCmdId = 0;
+    if (IsOpenWithKnownExternalViewerCmd(cmdId)) {
+        knownEVCmdId = cmdId;
+    } else if (IsOpenWithKnownExternalViewerCmd(cmd)) {
+        knownEVCmdId = origCmdId;
     }
 
-    bool isKnownEV = (cmdId >= CmdOpenWithKnownExternalViewerFirst) && (cmdId <= CmdOpenWithKnownExternalViewerLast);
-    if (origCmdId == CmdViewWithExternalViewer || isKnownEV) {
-        if (isKnownEV) {
-            bool canView = HasKnownExternalViewerForCmd(cmdId);
+    if (ctx.tab && knownEVCmdId) {
+        bool canView = CanViewWithKnownExternalViewer(ctx.tab, knownEVCmdId);
+        return canView ? CommandVisibility::Show : CommandVisibility::Hide;
+    }
+
+    if (origCmdId == CmdViewWithExternalViewer || knownEVCmdId) {
+        if (knownEVCmdId) {
+            bool canView = HasKnownExternalViewerForCmd(knownEVCmdId);
             return canView ? CommandVisibility::Show : CommandVisibility::Hide;
         }
         Str filter = GetCommandStringArg(cmd, kCmdArgFilter, {});
@@ -802,7 +807,12 @@ CommandVisibility GetCommandVisibility(int cmdId, const AppCommandCtx& ctx, Comm
     }
 
     if (cmdId == CmdApplyRedactions) {
-        if (ctx.hasRedactMarks) {
+        // the toolbar button is for marks made in this session: marks that came
+        // with the file only surface as their page gets loaded, so the button
+        // would pop up out of nowhere (e.g. when an annotation is selected).
+        // The menu and the palette still offer to apply those
+        bool marks = (surface == CommandSurface::Toolbar) ? ctx.hasUserRedactMarks : ctx.hasRedactMarks;
+        if (marks) {
             return CommandVisibility::Show;
         }
         // the annotation toolbar omits a greyed button; the menu keeps the
@@ -836,7 +846,7 @@ CommandVisibility GetCommandVisibility(int cmdId, const AppCommandCtx& ctx, Comm
         if (CmdIdInList(cmdId, removeIfAnnotsNotSupported)) {
             return CommandVisibility::Hide;
         }
-        if (cmdId >= CmdOpenWithKnownExternalViewerFirst && cmdId <= CmdOpenWithKnownExternalViewerLast) {
+        if (IsOpenWithKnownExternalViewerCmd(cmdId)) {
             return CommandVisibility::Hide;
         }
     }

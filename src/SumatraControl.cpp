@@ -647,7 +647,8 @@ static TempStr MarkupAnnotsResultTemp(Str action, int x, int y, int* exitCodeOut
                 Vec<int> strokeCounts;
                 Vec<PointF> points;
                 GetInkList(a, strokeCounts, points);
-                out.Append(fmt("ink strokes=%d points=%d opacity=%d\n", len(strokeCounts), len(points), Opacity(a)));
+                out.Append(fmt("ink strokes=%d points=%d opacity=%d width=%d\n", len(strokeCounts), len(points),
+                               Opacity(a), BorderWidth(a)));
             }
             n++;
             continue;
@@ -693,6 +694,7 @@ static TempStr MarkupAnnotsResultTemp(Str action, int x, int y, int* exitCodeOut
                    tab->selectedAnnotation ? 1 : 0, gWindows[0]->annotationUnderCursor ? 1 : 0,
                    gWindows[0]->pdfAnnotationsToolbarEnabled ? 1 : 0, hasNotification ? 1 : 0, selectedHover ? 1 : 0));
     out.Append(AnnotEditToolbarStateTemp(gWindows[0]));
+    out.Append(AnnotColorPopupStateTemp());
     out.Append(AnnotFilterToolbarStateTemp(gWindows[0]));
     out.Append(AnnotationHoverOverlayStateTemp(gWindows[0]));
     out.Append(FreeTextInPlaceEditStateTemp(gWindows[0]));
@@ -876,6 +878,7 @@ enum class ControlCmd : u16 {
     TestSaveSelectionAsImage = 96,
     TestReadingAutoScroll = 97,
     TestReadingBar = 98,
+    TestSeedTextSelection = 99,
 };
 
 enum class ControlArgType : u16 {
@@ -2134,6 +2137,18 @@ static void ExecuteControlRequest(ControlRequest* req) {
             IntArg(req, 0, layoutChapter); // optional
             int exitCode = 0;
             Str res = RenumberSelResultTemp(layoutChapter, &exitCode);
+            AppendTestResult(req, exitCode, res);
+            break;
+        }
+
+        case ControlCmd::TestSeedTextSelection: {
+            i32 pageNo = 1;
+            if (!IntArg(req, 0, pageNo)) {
+                AppendError(req, StrL("TestSeedTextSelection expects int pageNo (1-based)"));
+                break;
+            }
+            int exitCode = 0;
+            Str res = SeedTextSelectionResultTemp(pageNo, &exitCode);
             AppendTestResult(req, exitCode, res);
             break;
         }

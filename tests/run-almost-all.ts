@@ -118,10 +118,13 @@ import { testit as issue6050 } from "./issue-6050.ts";
 import { testit as issue5911 } from "./issue-5911.ts";
 import { testit as issue6088 } from "./issue-6088.ts";
 import { testit as annotContentsClickAway } from "./annot-contents-click-away.ts";
+import { testit as annotColorDropdown } from "./annot-color-dropdown.ts";
+import { testit as inkThickness } from "./ink-thickness.ts";
 import { testit as issue6137Contents } from "./issue-6137-contents.ts";
 import { testit as issue6093 } from "./issue-6093.ts";
 import { testit as toolbarHoverDropdown } from "./toolbar-hover-dropdown.ts";
 import { testit as issue6095 } from "./issue-6095.ts";
+import { testit as epubRelayoutStalePage } from "./epub-relayout-stale-page.ts";
 import { testit as epubThemeRestyle } from "./epub-theme-restyle.ts";
 import { testit as issue5943 } from "./issue-5943.ts";
 import { testit as issue6117 } from "./issue-6117.ts";
@@ -165,6 +168,7 @@ import { testit as issue6046 } from "./issue-6046.ts";
 import { testit as issue6048 } from "./issue-6048.ts";
 import { testit as issue6053 } from "./issue-6053.ts";
 import { testit as issue6054 } from "./issue-6054.ts";
+import { testit as favoritesMenu } from "./favorites-menu.ts";
 import { testit as favoritesTabAfterDocumentClose } from "./favorites-tab-after-document-close.ts";
 import { testit as movePolygonPolylineInk } from "./move-polygon-polyline-ink.ts";
 
@@ -208,6 +212,7 @@ import { testit as commandPaletteThumbnails } from "./command-palette-thumbnails
 import { testit as commandPaletteAnnotations } from "./command-palette-annotations.ts";
 import { testit as paletteDeleteAnnotation } from "./palette-delete-annotation.ts";
 import { testit as paletteCommandAvailability } from "./palette-command-availability.ts";
+import { testit as recentFilesMenu } from "./recent-files-menu.ts";
 import { testit as commandPaletteSettings } from "./command-palette-settings.ts";
 import { testit as commandPaletteDeleteTab } from "./command-palette-delete-tab.ts";
 import { testit as issue6104 } from "./issue-6104.ts";
@@ -278,6 +283,7 @@ import { testit as issue6144 } from "./issue-6144.ts";
 import { testit as toolbarTabSwitchPos } from "./toolbar-tab-switch-pos.ts";
 import { testit as mdMissingFile } from "./ad-hoc-md-missing-file.ts";
 import { testit as issue6148 } from "./issue-6148.ts";
+import { testit as issue6184 } from "./issue-6184.ts";
 
 async function annotationClipboardTests(): Promise<void> {
   beginSharedControlledSession();
@@ -294,6 +300,8 @@ export const tests: NamedTest[] = [
   // first: it drives the home page, whose thumbnail selection follows the
   // mouse, so it is the one test that cares what the machine was doing before
   ["issue-5978", issue5978],
+  ["annot-moveable-types", annotMoveableTypes],
+  ["move-polygon-polyline-ink", movePolygonPolylineInk],
   ["issue-5918", issue5918],
   ["issue-6167", issue6167],
   ["issue-6168", issue6168],
@@ -301,6 +309,7 @@ export const tests: NamedTest[] = [
   ["home-two-windows", homeTwoWindows],
   ["issue-5870", issue5870],
   ["issue-6133", issue6133],
+  ["issue-6184", issue6184],
   ["image-only-palette-items", imageOnlyPaletteItems],
   ["issue-6151", issue6151],
   ["issue-6161", issue6161],
@@ -363,7 +372,6 @@ export const tests: NamedTest[] = [
   ["issue-6048", issue6048],
   ["issue-6053", issue6053],
   ["issue-6054", issue6054],
-  ["move-polygon-polyline-ink", movePolygonPolylineInk],
   ["pdf-edit-toolbar-interaction", pdfEditToolbarInteraction],
   ["text-annotation-placement", textAnnotationPlacement],
   ["free-text-annotation-placement", freeTextAnnotationPlacement],
@@ -375,7 +383,6 @@ export const tests: NamedTest[] = [
   ["issue-6111", issue6111],
   ["annot-list-placement", annotListPlacement],
   ["exit-edit-pdf-deselects", exitEditPdfDeselects],
-  ["annot-moveable-types", annotMoveableTypes],
   ["stamp-caret-annotation-placement", stampCaretAnnotationPlacement],
   ["issue-6112", issue6112],
   ["line-annotation-placement", lineAnnotationPlacement],
@@ -453,6 +460,7 @@ export const tests: NamedTest[] = [
   ["issue-5965", issue5965],
 
   // --- isolated session: -appdata, saveSettings, or own window placement -
+  ["favorites-menu", favoritesMenu],
   ["favorites-tab-after-document-close", favoritesTabAfterDocumentClose],
   ["issue-6045", issue6045],
   ["issue-3744", issue3744],
@@ -470,10 +478,13 @@ export const tests: NamedTest[] = [
   ["issue-5911", issue5911],
   ["issue-6088", issue6088],
   ["annot-contents-click-away", annotContentsClickAway],
+  ["annot-color-dropdown", annotColorDropdown],
+  ["ink-thickness", inkThickness],
   ["issue-6137-contents", issue6137Contents],
   ["issue-6093", issue6093],
   ["issue-6095", issue6095],
   ["epub-theme-restyle", epubThemeRestyle],
+  ["epub-relayout-stale-page", epubRelayoutStalePage],
   ["issue-5943", issue5943],
   ["issue-6117", issue6117],
   ["issue-6118", issue6118],
@@ -510,6 +521,7 @@ export const tests: NamedTest[] = [
   ["command-palette-annotations", commandPaletteAnnotations],
   ["palette-delete-annotation", paletteDeleteAnnotation],
   ["palette-command-availability", paletteCommandAvailability],
+  ["recent-files-menu", recentFilesMenu],
   ["command-palette-settings", commandPaletteSettings],
   ["command-palette-delete-tab", commandPaletteDeleteTab],
   ["issue-6104", issue6104],
